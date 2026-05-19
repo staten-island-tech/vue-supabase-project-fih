@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import WebSocket from 'ws'
 
-const SUPABASE_URL= "https://zyjawkkqocasuwvuaxxv.supabase.co"
-const SUPABASE_KEY= "sb_publishable_G5zffL3bGX59EzIERu590w_RQxjqzgT"
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-import { SessionContextProvider } from '@supabase/auth-helpers-react'
-
-<SessionContextProvider supabaseClient={supabase}>
-  <App />
-</SessionContextProvider>
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY,
+  {
+    realtime: {
+      transport: WebSocket,
+    },
+  }
+)

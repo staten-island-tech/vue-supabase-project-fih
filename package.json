@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@nuxtjs/supabase": "^2.0.6"
-  }
-}
