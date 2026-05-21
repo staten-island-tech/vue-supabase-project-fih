@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Card>logIn</Card>
   </div>
 </template>
 
