@@ -1,13 +1,18 @@
 <template>
-  <div id="colorPicker"></div>
   <div>
-    <RouterLink to="/FishDescription">Next</RouterLink>
+    <NuxtLink to="FishDescription">Next</NuxtLink>
+    <div id="colorPicker"></div>
+    <DrawingCanvas :currentColor="currentColor"/>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import iro from "@jaames/iro";
+
+import DrawingCanvas from "@/Components/DrawingCanvas.vue";
+
+const currentColor = ref("#ff0000");
 
 onMounted(() => {
   const colorPicker = new iro.ColorPicker("#colorPicker", {
@@ -16,12 +21,9 @@ onMounted(() => {
     borderWidth: 1,
     borderColor: "#fff",
   });
-  colorPicker.on("color:change", function (color) {
-  var hex = colorPicker.color.hexString;
-  console.log(color.hexString);
-});
-});
 
+  colorPicker.on("color:change", (color) => {
+    currentColor.value = color.hexString;
+  });
+});
 </script>
-
-<style scoped></style>
