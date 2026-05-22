@@ -16,9 +16,10 @@ import Aquarium from '../Pages/Aquarium.vue';
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient('https://zyjawkkqocasuwvuaxxv.supabase.co', 'sb_publishable_G5zffL3bGX59EzIERu590w_RQxjqzgT')
+const email = document.querySelector("Email")
 
 async function register() {
-  const { data, error } = await supabase.auth.signUp({ //data is very general here, replace with stuff you need, work in pinia and go from there
+  const { data , error } = await supabase.auth.signUp({ //data is very general here, replace with stuff you need, work in pinia and go from there
     email: '',
     password: '',
     options: {
