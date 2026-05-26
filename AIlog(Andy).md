@@ -1,3 +1,5 @@
+Question: How can I make a sign in function called register with the template that I gave you in SignIn.vue?
+Answer:
 // ...existing code...
 <template>
   <form @submit.prevent="register">
@@ -23,14 +25,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'vue-router'
-import { useSupabaseClient } from '#supabase' // provided by @nuxtjs/supabase
 
+// ...existing code...
+const SUPABASE_URL = 'https://zyjawkkqocasuwvuaxxv.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_G5zffL3bGX59EzIERu590w_RQxjqzgT'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const message = ref('')
-const router = useRouter()
-const supabase = useSupabaseClient()
 
 async function register() {
   message.value = ''
@@ -42,30 +48,35 @@ async function register() {
   try {
     const { data, error } = await supabase.auth.signUp(
       { email: email.value, password: password.value },
-      { emailRedirectTo: `${window.location.origin}/Aquarium` } // or build from runtime config
+      // include a redirect after email confirmation if you want:
+      { emailRedirectTo: `${window.location.origin}/Aquarium` }
     )
 
     if (error) {
-      message.value = error.message || 'Sign up error.'
+      message.value = error.message || 'Sign up error'
       return
     }
 
-    // Typical signup flows:
-    // - If email confirmation is required, data.user exists but no session => inform the user
-    // - If instant sign-in, redirect to protected page
+    // If signUp triggers email confirmation flow, inform the user.
     if (data?.user && !data?.session) {
       message.value = 'Check your email to confirm your account.'
       return
     }
 
+    // If user is already signed in, navigate to Aquarium
     message.value = 'Registration successful. Redirecting...'
     await router.push('/Aquarium')
-  } catch (err: any) {
-    message.value = err?.message || 'Unexpected error'
+  } catch (e: any) {
+    message.value = e?.message || 'Unexpected error'
   }
 }
+// ...existing code...
 </script>
 
 <style scoped>
 /* ...existing code... */
 </style>
+
+Question: Given that I am using nuxt, will this code still work, after altering the code, is it possible for you to break the code down for me so i can learn how to use Nuxt-supabase in the rest of my project?
+
+Answer: 

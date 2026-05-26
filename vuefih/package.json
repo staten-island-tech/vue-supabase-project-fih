@@ -12,7 +12,7 @@
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.6",
     "@pinia/nuxt": "^0.11.3",
-    "@supabase/supabase-js": "^2.106.0",
+    "@supabase/supabase-js": "^2.106.2",
     "@tailwindcss/vite": "^4.2.4",
     "nuxt": "^4.4.4",
     "pinia": "^3.0.4",

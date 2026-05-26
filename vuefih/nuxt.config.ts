@@ -6,7 +6,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       supabase: {key:"sb_publishable_G5zffL3bGX59EzIERu590w_RQxjqzgT",
-        url:"https://zyjawkkqocasuwvuaxxv.supabase.co"
+        url:"https://zyjawkkqocasuwvuaxxv.supabase.co",
+        redirect:false
       }
     },
   },

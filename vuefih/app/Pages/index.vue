@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>TEST</h1>
+    <NuxtPage page-key="login"/>
   </div>
 </template>
 
