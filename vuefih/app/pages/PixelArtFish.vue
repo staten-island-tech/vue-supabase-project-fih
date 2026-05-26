@@ -1,7 +1,7 @@
 <template>
   <div>
     <NuxtLink to="FishDescription">Next</NuxtLink>
-    <button id = "Save">Save</button>
+    <button id="Save" @click="save">Save</button>
     <div class="controls">
       <div id="colorPicker"></div>
       
@@ -33,7 +33,7 @@
 import { ref, onMounted } from "vue";
 import iro from "@jaames/iro";
 import DrawingCanvas from "@/components/DrawingCanvas.vue";
-import AddingBucket from "~/components/AddingBucket.vue";
+import { uploadFile } from "@/components/AddingBucket.vue"; 
 
 const currentColor = ref("#ff0000");
 const brushSize = ref(5); 
@@ -46,12 +46,25 @@ onMounted(() => {
     borderWidth: 1,
     borderColor: "#fff",
   });
-  
+
   colorPicker.on("color:change", (color) => {
     currentColor.value = color.hexString;
     isEraser.value = false; 
-  });
-});
+  })
+})
+
+
+const save = async () => {
+  try {
+    const blob = new Blob(['pixel art placeholder'], { type: 'text/plain' });
+    const file = new File([blob], `pixel_art_${Date.now()}.txt`, { type: 'text/plain' });
+
+    const result = await uploadFile(file, `pixel_art_${Date.now()}_${file.name}`);
+    console.log('Upload result:', result);
+  }catch (err) {
+    console.error('Save failed:', err);
+  }
+}
 </script>
 
 <style scoped>
