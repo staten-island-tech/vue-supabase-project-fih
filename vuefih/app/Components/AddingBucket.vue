@@ -13,15 +13,19 @@ const supabase = createClient(
 )
 
 /**
- * @param {File} file 
- * @param {string} [path] 
+ * @param {File} file
+ * @param {string|null} [path] 
+ * @param {string} [folder] 
  * @returns {Promise<{ data: any, publicUrl: string }>}
- * @throws 
  */
-export async function uploadFile(file, path = null) {
+export async function uploadFile(file, path = null, folder = 'Fish Drawings') {
   if (!file) throw new Error('uploadFile: file is required')
 
-  const filename = path || `uploads/${Date.now()}_${file.name}`
+  folder = (folder || 'Fish Drawings').replace(/^\/+|\/+$/g, '')
+
+  const filenameBase = path || `uploads/${Date.now()}_${file.name}`
+  const filename = `${folder}/${filenameBase}`
+
   const options = {
     cacheControl: '3600',
     upsert: false,
@@ -39,12 +43,19 @@ export async function uploadFile(file, path = null) {
     throw urlError
   }
 
-  return { data, publicUrl: publicURL || publicURL }
+  return { data, publicUrl: publicURL }
 }
-</script>
 
-<script setup>
-
+/**
+ * @param {string} [path='Fish Drawings'] 
+ * @param {object} [options] 
+ * @returns {Promise<any[]>}
+ */
+export async function listFiles(path = 'Fish Drawings', options = { limit: 100 }) {
+  const { data, error } = await supabase.storage.from('Fish').list(path, options)
+  if (error) throw error
+  return data
+}
 </script>
 
 <style lang="scss" scoped>

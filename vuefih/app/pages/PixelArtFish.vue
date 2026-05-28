@@ -2,6 +2,7 @@
   <div>
     <NuxtLink to="FishDescription">Next</NuxtLink>
     <button id="Save" @click="save">Save</button>
+    <button @click="showBucket">Show bucket (console)</button>
     <div class="controls">
       <div id="colorPicker"></div>
       
@@ -33,7 +34,7 @@
 import { ref, onMounted } from "vue";
 import iro from "@jaames/iro";
 import DrawingCanvas from "@/components/DrawingCanvas.vue";
-import { uploadFile } from "@/components/AddingBucket.vue"; 
+import { uploadFile, listFiles } from "@/components/AddingBucket.vue"; 
 
 const currentColor = ref("#ff0000");
 const brushSize = ref(5); 
@@ -61,8 +62,17 @@ const save = async () => {
 
     const result = await uploadFile(file, `pixel_art_${Date.now()}_${file.name}`);
     console.log('Upload result:', result);
-  }catch (err) {
+  } catch (err) {
     console.error('Save failed:', err);
+  }
+}
+
+const showBucket = async () => {
+  try {
+    const files = await listFiles('')
+    console.log('Bucket files:', files)
+  } catch (err) {
+    console.error('Failed to list bucket files:', err)
   }
 }
 </script>
