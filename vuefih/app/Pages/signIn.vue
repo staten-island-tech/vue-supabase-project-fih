@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSupabaseClient } from '#supabase' // provided by @nuxtjs/supabase
+//import { useSupabaseClient } from 'supabase' // provided by @nuxtjs/supabase
 
 const email = ref('')
 const password = ref('')
@@ -42,7 +42,7 @@ async function register() {
   try {
     const { data, error } = await supabase.auth.signUp(
       { email: email.value, password: password.value },
-      { emailRedirectTo: `${window.location.origin}/Aquarium` } // or build from runtime config
+      //{ emailRedirectTo: `${window.location.origin}/Aquarium` } // or build from runtime config
     )
 
     if (error) {
@@ -64,8 +64,8 @@ async function register() {
     message.value = err?.message || 'Unexpected error'
   }
 }
+
 </script>
 
 <style scoped>
-/* ...existing code... */
 </style>
