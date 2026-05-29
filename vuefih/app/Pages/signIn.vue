@@ -23,46 +23,20 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-//import { useSupabaseClient } from 'supabase' // provided by @nuxtjs/supabase
 
 const email = ref('')
 const password = ref('')
 const message = ref('')
-const router = useRouter()
 const supabase = useSupabaseClient()
 
 async function register() {
-  message.value = ''
-  if (!email.value || !password.value) {
-    message.value = 'Email and password are required.'
-    return
-  }
-
-  try {
-    const { data, error } = await supabase.auth.signUp(
-      { email: email.value, password: password.value },
-      //{ emailRedirectTo: `${window.location.origin}/Aquarium` } // or build from runtime config
-    )
-
-    if (error) {
-      message.value = error.message || 'Sign up error.'
-      return
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.value,
+    options: {
+      emailRedirectTo: 'http://localhost:3000/Confirm',
     }
-
-    // Typical signup flows:
-    // - If email confirmation is required, data.user exists but no session => inform the user
-    // - If instant sign-in, redirect to protected page
-    if (data?.user && !data?.session) {
-      message.value = 'Check your email to confirm your account.'
-      return
-    }
-
-    message.value = 'Registration successful. Redirecting...'
-    await router.push('/Aquarium')
-  } catch (err: any) {
-    message.value = err?.message || 'Unexpected error'
-  }
+  })
+  if (error) console.log(error)
 }
 
 </script>
