@@ -19,6 +19,7 @@
         <button @click="isEraser = !isEraser">
           {{ isEraser ? 'Switch to Brush' : 'Use Eraser' }}
         </button>
+        <button id="clearButton">Clear Canvas</button>
       </div>
     </div>
 
