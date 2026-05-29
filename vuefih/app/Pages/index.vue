@@ -1,5 +1,6 @@
 <template>
   <div>
+    <NuxtPage name="login" />
   </div>
 </template>
 

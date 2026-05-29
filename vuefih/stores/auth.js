@@ -1,3 +1,4 @@
+// ...new file...
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
@@ -11,7 +12,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const supabase = useSupabaseClient() // Nuxt composable injected by @nuxtjs/supabase
+        const supabase = useSupabaseClient()
         const { data, error } = await supabase.auth.signUp(
           { email, password },
           redirectTo ? { emailRedirectTo: redirectTo } : {}
@@ -23,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = data?.user ?? null
         return { success: true, data }
       } catch (err) {
-        this.error = err?.message || String(err)
+        this.error = err?.message ?? String(err)
         return { success: false, error: err }
       } finally {
         this.loading = false
@@ -43,29 +44,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = data?.user ?? null
         return { success: true, data }
       } catch (err) {
-        this.error = err?.message || String(err)
-        return { success: false, error: err }
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async signInWithMagicLink(email, redirectTo) {
-      this.loading = true
-      this.error = null
-      try {
-        const supabase = useSupabaseClient()
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: redirectTo ? { emailRedirectTo: redirectTo } : {}
-        })
-        if (error) {
-          this.error = error.message
-          return { success: false, error }
-        }
-        return { success: true }
-      } catch (err) {
-        this.error = err?.message || String(err)
+        this.error = err?.message ?? String(err)
         return { success: false, error: err }
       } finally {
         this.loading = false
@@ -89,4 +68,4 @@ export const useAuthStore = defineStore('auth', {
       }
     }
   }
-})
+})  
