@@ -28,7 +28,7 @@ function resizeCanvas() {
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
-/*   context.clearRect(100, 100, 250, windows.innerwidth); */
+
 function getMousePos(e) {
   const rect = canvasRef.value.getBoundingClientRect();
   return { 

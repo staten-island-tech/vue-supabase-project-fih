@@ -19,7 +19,9 @@
         <button @click="isEraser = !isEraser">
           {{ isEraser ? 'Switch to Brush' : 'Use Eraser' }}
         </button>
-        <button id="clearButton">Clear Canvas</button>
+        <button id="clearCanvas">
+          {{ clearCanvas ? 'Swit' : 'Use Eraser' }}
+        </button>
       </div>
     </div>
 
@@ -58,13 +60,16 @@ onMounted(() => {
 
 const save = async () => {
   try {
-    const blob = new Blob(['pixel art placeholder'], { type: 'text/plain' });
-    const file = new File([blob], `pixel_art_${Date.now()}.txt`, { type: 'text/plain' });
-
-    const result = await uploadFile(file, `pixel_art_${Date.now()}_${file.name}`);
-    console.log('Upload result:', result);
+    const canvas = document.querySelector('.drawing-canvas')
+    if (!canvas) throw new Error('Canvas element not found')
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('Failed to export canvas blob')
+    const fileName = `pixel_art_${Date.now()}.png`
+    const file = new File([blob], fileName, { type: 'image/png' })
+    const result = await uploadFile(file, `${fileName}`)
+    console.log('Upload result:', result)
   } catch (err) {
-    console.error('Save failed:', err);
+    console.error('Save failed:', err)
   }
 }
 
