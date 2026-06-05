@@ -16,6 +16,10 @@ export const useAuthStore = defineStore('auth', {
           { email, password },
           redirectTo ? { emailRedirectTo: redirectTo } : {}
         )
+        if (data?.user) {
+          const userId = data.user.id
+          console.log('user uuid', userId)
+        }
         if (error) {
           this.error = error.message
           return { success: false, error }
@@ -36,6 +40,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         const supabase = useSupabaseClient()
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (data?.user) {
+          const userId = data.user.id
+          console.log('user uuid', userId)
+        }
         if (error) {
           this.error = error.message
           return { success: false, error }
@@ -55,13 +63,17 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       try {
         const supabase = useSupabaseClient()
-        const { error } = await supabase.auth.signInWithOtp({
+        const { data, error } = await supabase.auth.signInWithOtp({
           email,
           options: redirectTo ? { emailRedirectTo: redirectTo } : {}
         })
         if (error) {
           this.error = error.message
           return { success: false, error }
+        }
+        if (data?.user) {
+          const userId = data.user.id
+          console.log('user uuid', userId)
         }
         return { success: true }
       } catch (err) {

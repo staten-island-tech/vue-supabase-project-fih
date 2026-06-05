@@ -19,15 +19,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/Stores/store' // keep your existing import
+import { useSupabaseClient } from '#imports'
 
 const email = ref('')
 const password = ref('')
 const message = ref('')
 const router = useRouter()
 const auth = useAuthStore()
+const route = useRoute()
+const supabase = useSupabaseClient()
+const aquariums = ref([])
 
 async function login() {
   message.value = ''
@@ -59,12 +63,30 @@ async function login() {
     message.value = 'Please confirm your email before signing in.'
     return
   }
-
+  const id = res.data?.user?.id
+  console.log('logged in user id', id)
   // update store user (if your store action doesn't already) and navigate
   const user = res.data?.user ?? null
+  console.log('logged in user', user)
   auth.$patch({ user: user as any })
-  await router.push('/Aquarium')
+  await router.push(`/Aquarium/${id}`)
 }
+
+onMounted(async () => {
+  const rawId = route.params.id
+  const userId = Array.isArray(rawId) ? rawId[0] : rawId
+
+  if (!userId) {
+    return
+  }
+
+  const { data } = await supabase
+    .from('aquariums')
+    .select('*')
+    .eq('user_id', userId)
+
+  aquariums.value = data ?? []
+})
 </script>
 
 <style scoped>
