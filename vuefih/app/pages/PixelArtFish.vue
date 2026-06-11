@@ -2,7 +2,6 @@
   <div>
     <NuxtLink to="FishDescription">Next</NuxtLink>
     <button id="Save" @click="save">Save</button>
-    <button @click="showBucket">Show bucket (console)</button>
     <div class="controls">
       <div id="colorPicker"></div>
       
@@ -34,7 +33,6 @@
 import { ref, onMounted } from "vue";
 import iro from "@jaames/iro";
 import DrawingCanvas from "@/components/DrawingCanvas.vue";
-import { uploadFile, listFiles } from "@/components/AddingBucket.vue"; 
 
 const currentColor = ref("#ff0000");
 const brushSize = ref(5); 
@@ -59,23 +57,20 @@ const save = async () => {
   try {
     const canvas = document.querySelector('.drawing-canvas')
     if (!canvas) throw new Error('Canvas element not found')
+
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!blob) throw new Error('Failed to export canvas blob')
-    const fileName = `pixel_art_${Date.now()}.png`
-    const file = new File([blob], fileName, { type: 'image/png' })
-    const result = await uploadFile(file, `${fileName}`)
-    console.log('Upload result:', result)
+
+    const file = new File([blob], `pixel_art_${Date.now()}.png`, { type: 'image/png' })
+    const form = new FormData()
+    form.append('file', file)
+
+    const res = await fetch('/api/upload', { method: 'POST', body: form })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.statusMessage || JSON.stringify(json))
+    console.log('Upload result:', json)
   } catch (err) {
     console.error('Save failed:', err)
-  }
-}
-
-const showBucket = async () => {
-  try {
-    const files = await listFiles('')
-    console.log('Bucket files:', files)
-  } catch (err) {
-    console.error('Failed to list bucket files:', err)
   }
 }
 </script>
