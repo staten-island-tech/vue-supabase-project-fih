@@ -30,8 +30,11 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "~/Stores/store"; 
 import { useSupabaseClient } from "#imports";
 
-const email = ref("");
-const password = ref("");
+type email = string;
+type password = string;
+
+const email = ref<email>("");
+const password = ref<password>("");
 const message = ref("");
 const router = useRouter();
 const auth = useAuthStore();
