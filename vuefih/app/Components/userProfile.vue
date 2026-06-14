@@ -5,7 +5,7 @@
         <h3>{{ userEmail }}</h3>
         <h2>User Id:</h2>
         <h3>{{ userId }}</h3>
-        <button v-if="canEdit" @click="SignOut">Sign Out</button>
+        <button @click="SignOut">Sign Out</button>
     </div>
 </template>
 
@@ -23,7 +23,6 @@ const props = defineProps({
 const auth = useAuthStore();
 const userEmail = computed(() => auth.user?.email ?? '');
 const userId = computed(() => auth.user?.id ?? '');
-const canEdit = computed(() => props.canEdit);
 
 onMounted(async () => {
   if (!auth.user) {
