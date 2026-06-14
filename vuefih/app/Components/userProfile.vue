@@ -1,31 +1,38 @@
 <template>
     <div>
         <img src="https://th.bing.com/th/id/OIP.i3qQLulfg9NApqe_4NaYzgHaHa?w=214&h=214&c=7&r=0&o=7&pid=1.7&rm=3" alt="User Profile Picture" />
-        <h1>User Email</h1>
+        <h1>User Email:</h1>
         <h3>{{ userEmail }}</h3>
-        <h2>User Id</h2>
+        <h2>User Id:</h2>
         <h3>{{ userId }}</h3>
-        <button @click="UpdateProfile">Update Profile</button>
-        <button @click="SignOut">Sign Out</button>
+        <button v-if="canEdit" @click="SignOut">Sign Out</button>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useAuthStore } from '~/Stores/store';
-import { useSupabaseClient } from "#imports";
 
-const userEmail = ref("");
-const userId = ref("");
+const props = defineProps({
+  canEdit: {
+    type: Boolean,
+    default: true
+  }
+});
+
 const auth = useAuthStore();
-const supabase = useSupabaseClient();
+const userEmail = computed(() => auth.user?.email ?? '');
+const userId = computed(() => auth.user?.id ?? '');
+const canEdit = computed(() => props.canEdit);
 
-async function UpdateProfile() {
-    auth.updateProfile();
-}
+onMounted(async () => {
+  if (!auth.user) {
+    await auth.fetchUser();
+  }
+});
 
-function SignOut() {
-    auth.signOut();
+async function SignOut() {
+  await auth.signOut();
 }
 </script>
 

@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
+import { navigateTo, useSupabaseClient } from '#imports'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
+    /** @type {import('@supabase/supabase-js').User | null} */
     user: null,
     loading: false,
     error: null
@@ -95,6 +97,7 @@ export const useAuthStore = defineStore('auth', {
           return { success: false, error }
         }
         this.user = null
+        navigateTo('/login')
         return { success: true }
       } finally {
         this.loading = false
@@ -154,40 +157,5 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
-
-    // new: update profile (upsert into 'profiles' table). profileData is an object with fields to save.
-    async updateProfile(profileData = {}) {
-      this.loading = true
-      this.error = null
-      try {
-        const supabase = useSupabaseClient()
-        const userId = this.user?.id
-        if (!userId) {
-          return { success: false, error: { message: 'No authenticated user' } }
-        }
-
-        // ensure id present for upsert
-        const payload = { id: userId, ...profileData }
-
-        const { data, error } = await supabase
-          .from('profiles')
-          .upsert(payload, { returning: 'representation' })
-
-        if (error) {
-          this.error = error.message
-          return { success: false, error }
-        }
-
-        // optionally patch the store user metadata if you stored name/email in profiles
-        // this.user = { ...this.user, user_metadata: { ...this.user?.user_metadata, ...profileData } }
-
-        return { success: true, data }
-      } catch (err) {
-        this.error = err?.message ?? String(err)
-        return { success: false, error: err }
-      } finally {
-        this.loading = false
-      }
-    }
   }
 })
