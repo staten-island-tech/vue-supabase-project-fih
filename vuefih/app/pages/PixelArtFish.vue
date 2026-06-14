@@ -1,12 +1,27 @@
 <template>
-  <div>
-    <NuxtLink to="FishDescription">Next</NuxtLink>
-    <button id="Save" @click="save">Save</button>
-    <div class="controls">
+  <div class="page">
+    <header class="toolbar">
+      <NuxtLink to="/FishDescription">
+        Next
+      </NuxtLink>
+
+      <button
+        id="Save"
+        @click="save"
+      >
+        Save 
+      </button>
+    </header>
+
+    <section class="controls-card">
       <div id="colorPicker"></div>
 
       <div class="tool-settings">
-        <label for="brushSize">Brush Size: {{ brushSize }}px</label>
+        <div>
+          Brush Size:
+          <strong>{{ brushSize }}</strong>px
+        </div>
+
         <input
           id="brushSize"
           type="range"
@@ -15,103 +30,220 @@
           v-model.number="brushSize"
         />
 
-        <button @click="isEraser = !isEraser">
-          {{ isEraser ? 'Switch to Brush' : 'Use Eraser' }}
+        <button
+          @click="isEraser = !isEraser"
+        >
+          {{
+            isEraser
+              ? 'Switch to Brush'
+              : 'Use Eraser'
+          }}
         </button>
       </div>
-    </div>
+    </section>
 
-    <DrawingCanvas
-      :currentColor="currentColor"
-      :brushSize="brushSize"
-      :isEraser="isEraser"
-    />
+    <section class="canvas-card">
+      <DrawingCanvas
+        :currentColor="currentColor"
+        :brushSize="brushSize"
+        :isEraser="isEraser"
+      />
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { createClient } from "@supabase/supabase-js";
-import iro from "@jaames/iro";
-import DrawingCanvas from "@/components/DrawingCanvas.vue";
+import { ref, onMounted } from "vue"
+import {
+  useSupabaseClient,
+  useSupabaseUser,
+  useRouter
+} from "#imports"
 
-const currentColor = ref("#ff0000");
-const brushSize = ref(5);
-const isEraser = ref(false);
+import iro from "@jaames/iro"
+import DrawingCanvas from "@/components/DrawingCanvas.vue"
+
+const currentColor = ref("#ff0000")
+const brushSize = ref(5)
+const isEraser = ref(false)
+
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const router = useRouter()
 
 onMounted(() => {
-  const colorPicker = new iro.ColorPicker("#colorPicker", {
-    width: 200,
-    color: "#ff0000",
-    borderWidth: 1,
-    borderColor: "#fff",
-  });
+  const colorPicker =
+    new iro.ColorPicker(
+      "#colorPicker",
+      {
+        width: 200,
+        color: "#ff0000",
+        borderWidth: 1,
+        borderColor: "#fff",
+      }
+    )
 
-  colorPicker.on("color:change", (color) => {
-    currentColor.value = color.hexString;
-    isEraser.value = false;
-  });
-});
+  colorPicker.on(
+    "color:change",
+    (color) => {
+      currentColor.value =
+        color.hexString
 
-const SUPABASE_URL = 'https://zyjawkkqocasuwvuaxxv.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_G5zffL3bGX59EzIERu590w_RQxjqzgT';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+      isEraser.value = false
+    }
+  )
+})
 
 const save = async () => {
   try {
-    const canvas = document.querySelector(".drawing-canvas");
-    if (!canvas) throw new Error("Canvas element not found");
+    let userId = user.value?.id
 
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png")
-    );
-    if (!blob) throw new Error("Failed to export canvas blob");
+    if (!userId) {
+      const {
+        data: authData,
+        error: authError,
+      } =
+        await supabase.auth.getUser()
 
-    const filename = `pixel_art_${Date.now()}.png`;
-    const path = `Fish Drawings/${filename}`;
+      if (authError) {
+        console.warn(authError)
+      }
 
-    const file = new File([blob], filename, { type: "image/png" });
+      userId =
+        authData?.user?.id
+    }
 
-    const options = {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type,
-    };
+    if (!userId) {
+      const {
+        data: sessionData,
+        error: sessionError,
+      } =
+        await supabase.auth.getSession()
 
-    const { data, error } = await supabase.storage
-      .from("Fish")
-      .upload(path, file, options);
+      if (sessionError) {
+        console.warn(sessionError)
+      }
+
+      userId =
+        sessionData?.session?.user?.id
+    }
+
+    if (!userId) {
+      throw new Error(
+        "User not signed in"
+      )
+    }
+
+    const canvas =
+      document.querySelector(
+        ".drawing-canvas"
+      )
+
+    if (!canvas) {
+      throw new Error(
+        "Canvas not found"
+      )
+    }
+
+    const blob =
+      await new Promise(
+        (resolve) =>
+          canvas.toBlob(
+            resolve,
+            "image/png"
+          )
+      )
+
+    if (!blob) {
+      throw new Error(
+        "Blob creation failed"
+      )
+    }
+
+    const filename =
+      `pixel_art_${Date.now()}.png`
+
+    const path =
+      `Fish Drawings/${userId}/${filename}`
+
+    const file =
+      new File(
+        [blob],
+        filename,
+        {
+          type:
+            "image/png",
+        }
+      )
+
+    const { data, error } =
+      await supabase.storage
+        .from("Fish")
+        .upload(
+          path,
+          file,
+          {
+            cacheControl:
+              "3600",
+            upsert: false,
+            contentType:
+              file.type,
+          }
+        )
 
     if (error) {
-      console.error("Supabase upload error:", error);
-      throw error;
+      throw error
     }
 
-    const { data: urlData, error: urlError } = supabase.storage
-      .from("Fish")
-      .getPublicUrl(path);
-    if (urlError) {
-      console.error("getPublicUrl error:", urlError);
-      throw urlError;
+    const {
+      data: urlData,
+    } =
+      supabase.storage
+        .from("Fish")
+        .getPublicUrl(
+          path
+        )
+
+    const publicUrl =
+      urlData?.publicUrl ||
+      urlData?.publicURL ||
+      null
+
+    localStorage.setItem(
+      `fish-image-path-${userId}`,
+      path
+    )
+
+    if (publicUrl) {
+      localStorage.setItem(
+        `fish-image-url-${userId}`,
+        publicUrl
+      )
     }
 
-    const publicUrl = urlData?.publicUrl || urlData?.publicURL || null;
-    console.log("Upload succeeded:", { data, publicUrl });
+    console.log(
+      "Upload succeeded",
+      data
+    )
+
+    await router.push({
+      path: "/FishDescription",
+      query: {
+        filePath:
+          encodeURIComponent(
+            path
+          ),
+      },
+    })
   } catch (err) {
-    console.error("Save failed:", err);
+    console.error(
+      "Save failed:",
+      err
+    )
   }
-};
+}
 </script>
 
 <style scoped>
-.controls {
-  margin-bottom: 20px;
-}
-.tool-settings {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-top: 15px;
-}
+
 </style>
