@@ -1,8 +1,8 @@
 <template>
   <div class="page">
     <header>
-      <NuxtLink to="/AcquariumScreen">
-       Back to Aquarium
+      <NuxtLink to="/Aquarium">
+        Back to Aquarium
       </NuxtLink>
     </header>
 
@@ -20,138 +20,128 @@
     </section>
 
     <section class="details-card">
-      <input
-        placeholder="Name"
-      />
+      <input v-model="fishName" placeholder="Name" />
+      <input v-model="fishDescription" placeholder="Fish Description" />
 
-      <input
-        placeholder="Fish Description"
-      />
+      <button class="save-next" @click="saveAndNext">
+        Save and next
+      </button>
     </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
-import { useSupabaseClient, useSupabaseUser, useRoute } from '#imports'
+import { ref, onMounted, watch } from 'vue'
+import {
+  useSupabaseClient,
+  useSupabaseUser,
+  useRoute,
+  useRouter
+} from '#imports'
 
-const publicUrl = ref(null)
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const route = useRoute()
+const router = useRouter()
+
+const publicUrl = ref(null)
+const fishName = ref('')
+const fishDescription = ref('')
 
 const loadUserImage = async () => {
-  let userId = user.value?.id
+  const userId =
+    user.value?.id ||
+    (await supabase.auth.getUser()).data?.user?.id ||
+    (await supabase.auth.getSession()).data?.session?.user?.id
 
-  if (!userId) {
-    const { data: authData, error: authError } =
-      await supabase.auth.getUser()
+  const savedFishId = route.query.savedFishId || route.query.fishId
+  const queryPath = route.query.filePath ? String(route.query.filePath) : null
 
-    if (authError) {
-      console.warn('Supabase getUser fallback error', authError)
-    }
+  if (savedFishId) {
+    const key = `aquarium-fish-${userId || 'anon'}`
 
-    userId = authData?.user?.id
+    try {
+      const list = JSON.parse(localStorage.getItem(key) || '[]')
+      const found = list.find(f => String(f.id) === String(savedFishId))
+
+      if (found) {
+        publicUrl.value = found.publicUrl || found.src || null
+        fishName.value = found.name || ''
+        fishDescription.value = found.description || ''
+        return
+      }
+    } catch {}
   }
 
-  if (!userId) {
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession()
+  const savedPath =
+    userId && localStorage.getItem(`fish-image-path-${userId}`)
 
-    if (sessionError) {
-      console.warn('Supabase getSession fallback error', sessionError)
-    }
-
-    userId = sessionData?.session?.user?.id
-  }
-
-  const queryPath = route.query.filePath
-    ? String(route.query.filePath)
-    : null
-
-  const savedPath = userId
-    ? localStorage.getItem(`fish-image-path-${userId}`)
-    : null
-
-  const path = queryPath
-    ? decodeURIComponent(queryPath)
-    : savedPath
+  const path = queryPath || savedPath
 
   if (path) {
-    const { data, error } =
-      supabase.storage
-        .from('Fish')
-        .getPublicUrl(path)
+    const { data } = supabase.storage.from('Fish').getPublicUrl(path)
+    const url = data?.publicUrl || data?.publicURL
 
-    if (error) {
-      console.error('getPublicUrl error:', error)
+    if (url) {
+      publicUrl.value = url
       return
     }
-
-    publicUrl.value =
-      data?.publicUrl ||
-      data?.publicURL ||
-      null
-
-    return
   }
 
-  if (!userId) {
-    console.warn('No signed in user found')
-    return
-  }
+  if (!userId) return
 
-  const folder = `Fish Drawings/${userId}`
+  const { data: files } = await supabase.storage
+    .from('Fish')
+    .list(`Fish Drawings/${userId}`)
 
-  const { data: files, error: listError } =
-    await supabase.storage
-      .from('Fish')
-      .list(folder)
+  const latest = files
+    ?.filter(f => f.name)
+    ?.sort((a, b) => b.name.localeCompare(a.name))[0]
 
-  if (listError) {
-    console.error('Storage list error:', listError)
-    return
-  }
+  if (!latest) return
 
-  if (!files?.length) {
-    publicUrl.value = null
-    return
-  }
+  const { data } = supabase.storage
+    .from('Fish')
+    .getPublicUrl(`Fish Drawings/${userId}/${latest.name}`)
 
-  const latestFile = [...files]
-    .filter(file => file.name)
-    .sort((a, b) =>
-      b.name.localeCompare(a.name)
-    )[0]
-
-  if (!latestFile) {
-    publicUrl.value = null
-    return
-  }
-
-  const filePath =
-    `${folder}/${latestFile.name}`
-
-  const { data, error } =
-    supabase.storage
-      .from('Fish')
-      .getPublicUrl(filePath)
-
-  if (error) {
-    console.error('getPublicUrl error:', error)
-    return
-  }
-
-  publicUrl.value =
-    data?.publicUrl ||
-    data?.publicURL ||
-    null
+  publicUrl.value = data?.publicUrl || data?.publicURL || null
 }
 
 onMounted(loadUserImage)
-watch(user, loadUserImage, {
-  immediate: true
-})
+watch(user, loadUserImage, { immediate: true })
+
+const saveAndNext = () => {
+  const userId = user.value?.id || 'anon'
+  const key = `aquarium-fish-${userId}`
+  const savedFishId = route.query.savedFishId || route.query.fishId
+
+  let list = []
+
+  try {
+    list = JSON.parse(localStorage.getItem(key) || '[]')
+  } catch {}
+
+  const index = savedFishId
+    ? list.findIndex(f => String(f.id) === String(savedFishId))
+    : -1
+
+  const existing = index >= 0 ? list[index] : null
+
+  const fish = {
+    id: existing?.id || Date.now(),
+    publicUrl: publicUrl.value,
+    name: fishName.value,
+    description: fishDescription.value,
+    createdAt: existing?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+
+  if (index >= 0) list[index] = fish
+  else list.push(fish)
+
+  localStorage.setItem(key, JSON.stringify(list))
+  router.push('/Aquarium')
+}
 </script>
 
 <style scoped>

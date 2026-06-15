@@ -5,11 +5,8 @@
         Next
       </NuxtLink>
 
-      <button
-        id="Save"
-        @click="save"
-      >
-        Save 
+      <button id="Save" @click="save">
+        Save
       </button>
     </header>
 
@@ -30,14 +27,8 @@
           v-model.number="brushSize"
         />
 
-        <button
-          @click="isEraser = !isEraser"
-        >
-          {{
-            isEraser
-              ? 'Switch to Brush'
-              : 'Use Eraser'
-          }}
+        <button @click="isEraser = !isEraser">
+          {{ isEraser ? 'Switch to Brush' : 'Use Eraser' }}
         </button>
       </div>
     </section>
@@ -54,14 +45,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import {
-  useSupabaseClient,
-  useSupabaseUser,
-  useRouter
-} from "#imports"
-
+import { useSupabaseClient, useSupabaseUser, useRouter } from "#imports"
 import iro from "@jaames/iro"
-import DrawingCanvas from "@/components/DrawingCanvas.vue"
 
 const currentColor = ref("#ff0000")
 const brushSize = ref(5)
@@ -72,174 +57,76 @@ const user = useSupabaseUser()
 const router = useRouter()
 
 onMounted(() => {
-  const colorPicker =
-    new iro.ColorPicker(
-      "#colorPicker",
-      {
-        width: 200,
-        color: "#ff0000",
-        borderWidth: 1,
-        borderColor: "#fff",
-      }
-    )
+  const picker = new iro.ColorPicker("#colorPicker", {
+    width: 200,
+    color: "#ff0000",
+    borderWidth: 1,
+    borderColor: "#fff"
+  })
 
-  colorPicker.on(
-    "color:change",
-    (color) => {
-      currentColor.value =
-        color.hexString
-
-      isEraser.value = false
-    }
-  )
+  picker.on("color:change", (color) => {
+    currentColor.value = color.hexString
+    isEraser.value = false
+  })
 })
+
+const getUserId = async () => {
+  const direct = user.value?.id
+  if (direct) return direct
+
+  const { data } = await supabase.auth.getUser()
+  if (data?.user?.id) return data.user.id
+
+  const { data: session } = await supabase.auth.getSession()
+  return session?.session?.user?.id || null
+}
 
 const save = async () => {
   try {
-    let userId = user.value?.id
+    const userId = await getUserId()
+    if (!userId) throw new Error("Not signed in")
 
-    if (!userId) {
-      const {
-        data: authData,
-        error: authError,
-      } =
-        await supabase.auth.getUser()
+    const canvas = document.querySelector(".drawing-canvas")
+    if (!canvas) throw new Error("Canvas not found")
 
-      if (authError) {
-        console.warn(authError)
-      }
-
-      userId =
-        authData?.user?.id
-    }
-
-    if (!userId) {
-      const {
-        data: sessionData,
-        error: sessionError,
-      } =
-        await supabase.auth.getSession()
-
-      if (sessionError) {
-        console.warn(sessionError)
-      }
-
-      userId =
-        sessionData?.session?.user?.id
-    }
-
-    if (!userId) {
-      throw new Error(
-        "User not signed in"
-      )
-    }
-
-    const canvas =
-      document.querySelector(
-        ".drawing-canvas"
-      )
-
-    if (!canvas) {
-      throw new Error(
-        "Canvas not found"
-      )
-    }
-
-    const blob =
-      await new Promise(
-        (resolve) =>
-          canvas.toBlob(
-            resolve,
-            "image/png"
-          )
-      )
-
-    if (!blob) {
-      throw new Error(
-        "Blob creation failed"
-      )
-    }
-
-    const filename =
-      `pixel_art_${Date.now()}.png`
-
-    const path =
-      `Fish Drawings/${userId}/${filename}`
-
-    const file =
-      new File(
-        [blob],
-        filename,
-        {
-          type:
-            "image/png",
-        }
-      )
-
-    const { data, error } =
-      await supabase.storage
-        .from("Fish")
-        .upload(
-          path,
-          file,
-          {
-            cacheControl:
-              "3600",
-            upsert: false,
-            contentType:
-              file.type,
-          }
-        )
-
-    if (error) {
-      throw error
-    }
-
-    const {
-      data: urlData,
-    } =
-      supabase.storage
-        .from("Fish")
-        .getPublicUrl(
-          path
-        )
-
-    const publicUrl =
-      urlData?.publicUrl ||
-      urlData?.publicURL ||
-      null
-
-    localStorage.setItem(
-      `fish-image-path-${userId}`,
-      path
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png")
     )
 
+    if (!blob) throw new Error("Failed to create image")
+
+    const filename = `pixel_art_${Date.now()}.png`
+    const path = `Fish Drawings/${userId}/${filename}`
+
+    const file = new File([blob], filename, { type: "image/png" })
+
+    const { error } = await supabase.storage
+      .from("Fish")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type
+      })
+
+    if (error) throw error
+
+    const { data } = supabase.storage
+      .from("Fish")
+      .getPublicUrl(path)
+
+    const publicUrl = data?.publicUrl || data?.publicURL
+
+    localStorage.setItem(`fish-image-path-${userId}`, path)
     if (publicUrl) {
-      localStorage.setItem(
-        `fish-image-url-${userId}`,
-        publicUrl
-      )
+      localStorage.setItem(`fish-image-url-${userId}`, publicUrl)
     }
-
-    console.log(
-      "Upload succeeded",
-      data
-    )
 
     await router.push({
       path: "/FishDescription",
-      query: {
-        filePath:
-          encodeURIComponent(
-            path
-          ),
-      },
+      query: { filePath: path }
     })
   } catch (err) {
-    console.error(
-      "Save failed:",
-      err
-    )
+    console.error("Save failed:", err)
   }
 }
 </script>
