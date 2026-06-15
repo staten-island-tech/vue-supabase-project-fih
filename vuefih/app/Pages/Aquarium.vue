@@ -118,35 +118,18 @@ function goToPixel() {
 }
 
 const loadFish = async () => {
-  let userId = user.value?.id
+ const route = useRoute()
 
-  if (!userId) {
-    const { data: authData, error: authError } = await supabase.auth.getUser()
-    if (authError) {
-      console.warn('Supabase auth fallback error', authError)
-    }
-    userId = authData?.user?.id
-  }
+const loadFish = async () => {
+  const userId = targetUserId.value
 
-  if (!userId) {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.warn('Supabase session fallback error', sessionError)
-    }
-    userId = sessionData?.session?.user?.id
-  }
-
-  if (!userId) {
-    fish.value = []
-    return
-  }
+  if (!userId) return
 
   const { data, error } = await supabase
-  .from('aquarium')
-  .select('*')
-  .eq('user_id', userId)
-  .order('created_at', { ascending: false })
-  console.log("RAW DATA FROM SUPABASE:", data)
+    .from('aquarium')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
 
   if (error) {
     console.log(error)
@@ -158,7 +141,7 @@ const loadFish = async () => {
     id: item.id,
     name: item.name,
     description: item.description,
-    publicUrl: item.background,
+    publicUrl: item.public_url,
     style: randomStyle()
   }))
 }
@@ -206,7 +189,7 @@ const deleteFish = async () => {
   closeModal()
 }
 
-watch(user, async () => {
+watch(targetUserId, async () => {
   await loadFish()
 }, { immediate: true })
 

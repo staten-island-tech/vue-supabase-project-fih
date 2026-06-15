@@ -71,8 +71,8 @@ const loadGlobalAquariums = async () => {
 
   const { data, error: supErr } = await supabase
     .from('aquarium')
-    .select('id,background,created_at')
-    .order('id', { ascending: false })
+    .select('user_id, name, description, created_at')
+    .order('created_at', { ascending: false })
 
   if (supErr) {
     error.value = supErr.message
@@ -81,41 +81,48 @@ const loadGlobalAquariums = async () => {
     return
   }
 
-  if (!data?.length) {
-    users.value = []
-    loading.value = false
-    return
+  const grouped = {}
+
+  for (const row of data || []) {
+    const uid = row.user_id
+
+    if (!grouped[uid]) {
+      grouped[uid] = {
+        user_id: uid,
+        count: 0,
+        latestFish: row.name,
+        latestDescription: row.description
+      }
+    }
+
+    grouped[uid].count++
   }
 
-  users.value = data.map(row => ({
-    user_id: row.id,
-    count: 1,
-    latestFish: row.background ? 'Saved aquarium background' : 'No aquarium background',
-    latestDescription: row.background ? 'Background saved' : 'No description available'
-  }))
+  users.value = Object.values(grouped)
   loading.value = false
 }
 
 const visitAquarium = async () => {
   error.value = ''
 
-  if (!visitId.value.trim()) {
+  const id = visitId.value.trim()
+  if (!id) {
     error.value = 'Enter a user ID first.'
     return
   }
 
   const { data, error: checkError } = await supabase
-    .from('aquarium')
+    .from('profiles')
     .select('id')
-    .eq('id', visitId.value.trim())
+    .eq('id', id)
     .single()
 
   if (checkError || !data) {
-    error.value = 'No aquarium was found for that ID.'
+    error.value = 'No user found.'
     return
   }
 
-  router.push(`/Aquarium/${visitId.value.trim()}`)
+  router.push(`/Aquarium/${id}`)
 }
 
 const goToAquarium = (userId) => {
