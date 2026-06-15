@@ -1,6 +1,9 @@
 <template>
   <div>
     <h1>User Aquarium</h1>
+    <GoBackButton :targetId="userId" />
+    <UserProfile :canEdit="canEditProfile" />
+
     <p v-if="loading">Loading…</p>
     <p v-if="error" style="color:red">{{ error }}</p>
 
@@ -17,14 +20,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useSupabaseClient } from '#imports'
+import { useAuthStore } from '~/Stores/store'
+import UserProfile from '~/components/userProfile.vue'
+import GoBackButton from '~/components/GoBackButton.vue'
 import type { aq } from '~/Types And Interfaces/types'
 
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
+const auth = useAuthStore()
 const aquariums = ref<aq[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -32,11 +38,16 @@ const error = ref('')
 const rawId = route.params.id
 const userId = Array.isArray(rawId) ? rawId[0] : rawId
 
+const canEditProfile = computed(() => !!auth.user && auth.user.id === userId)
+
 if (!userId) {
-  // no id -> redirect to /Aquarium or show error
   router.replace('/Aquarium')
 } else {
   onMounted(async () => {
+    if (!auth.user) {
+      await auth.fetchUser()
+    }
+
     loading.value = true
     error.value = ''
     try {

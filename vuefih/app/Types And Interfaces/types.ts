@@ -1,5 +1,5 @@
 export type aq = {
-    id: BigInteger,
-    name: string,
-    user_id: BigInteger
-}
+  id: string;
+  name: string;
+  user_id: string;
+};

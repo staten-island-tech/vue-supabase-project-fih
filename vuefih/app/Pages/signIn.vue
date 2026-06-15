@@ -1,20 +1,20 @@
 // ...existing code...
 <template>
   <form @submit.prevent="register">
-    <div>
+    <div style="position: relative; border: 1px solid #ccc; border-radius: 20px; padding: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; ">
       <nuxt-link to="/login">
-        <h2>Return?</h2>
+        <button style="font-family: Roboto, sans-serif;">Return?</button>
       </nuxt-link>
 
-      <h1>Glad To Have You Here!</h1>
+      <h1 style="text-align: center; font-family: Roboto, sans-serif;">Glad To Have You Here!</h1>
 
-      <h2>New Email</h2>
-      <input type="email" v-model="email" class="Email" name="New email" required />
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">New Email</h2>
+      <input style="flex: 1; display: flex; justify-self: center;  width: 50%;" type="email" v-model="email" class="Email" name="New email" required />
 
-      <h2>New Password</h2>
-      <input type="password" v-model="password" class="Password" name="New Password" required />
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">New Password</h2>
+      <input style="flex: 1; display: flex; justify-self: center;  width: 50%;" type="password" v-model="password" class="Password" name="New Password" required />
 
-      <button type="submit" :disabled="auth.loading">Create account</button>
+      <button style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;" type="submit" :disabled="auth.loading">Create account</button>
 
       <p v-if="message">{{ message }}</p>
       <p v-if="auth.error" style="color:red">{{ auth.error }}</p>
