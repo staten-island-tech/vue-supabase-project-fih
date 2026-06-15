@@ -81,7 +81,6 @@ const goToPixel = () => {
 </script>
 
 <style scoped>
-/* minimal styling */
 .header-actions { display:flex; align-items:center; gap:12px; margin-bottom:8px }
 .primary-btn { background:#06b6d4; color:white; padding:8px 12px; border-radius:8px; border:none; cursor:pointer }
 .primary-btn:hover { opacity:0.95 }
