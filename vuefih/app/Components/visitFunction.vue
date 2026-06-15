@@ -20,7 +20,7 @@ async function visitAquarium() {
         return;
     }
     else {
-        await router.push(`/aquarium/${id.value}`);
+        await router.push(`/Aquarium/${id.value}`);
     }
 }
 
