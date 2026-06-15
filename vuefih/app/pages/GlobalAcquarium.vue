@@ -85,30 +85,8 @@ const loadGlobalAquariums = async () => {
     users.value = []
     loading.value = false
     return
-  }
-
-  const grouped = data.reduce((acc, item) => {
-    const id = item.user_id || 'unknown'
-
-    if (!acc[id]) {
-      acc[id] = {
-        user_id: id,
-        count: 0,
-        latestFish: item.name,
-        latestDescription: item.description
-      }
-    }
-
-    acc[id].count++
-
-    if (item.name) acc[id].latestFish = item.name
-    if (item.description) acc[id].latestDescription = item.description
-
-    return acc
-  }, {})
-
-  users.value = Object.values(grouped).sort((a, b) => b.count - a.count)
-  loading.value = false
+  }\
+  
 }
 
 const visitAquarium = () => {

@@ -114,13 +114,6 @@ const save = async () => {
       .from("Fish")
       .getPublicUrl(path)
 
-    const publicUrl = data?.publicUrl || data?.publicURL
-
-    localStorage.setItem(`fish-image-path-${userId}`, path)
-    if (publicUrl) {
-      localStorage.setItem(`fish-image-url-${userId}`, publicUrl)
-    }
-
     await router.push({
       path: "/FishDescription",
       query: { filePath: path }

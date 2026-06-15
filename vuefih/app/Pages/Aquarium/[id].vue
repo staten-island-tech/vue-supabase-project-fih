@@ -31,6 +31,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '~/Stores/store'
+import { useSupabaseClient } from '#imports'
 import type { aq } from '~/Types And Interfaces/types'
 
 const route = useRoute()
