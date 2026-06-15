@@ -96,13 +96,26 @@ const loadGlobalAquariums = async () => {
   loading.value = false
 }
 
-const visitAquarium = () => {
-  if (!visitId.value) {
+const visitAquarium = async () => {
+  error.value = ''
+
+  if (!visitId.value.trim()) {
     error.value = 'Enter a user ID first.'
     return
   }
 
-  router.push(`/Aquarium/${visitId.value}`)
+  const { data, error: checkError } = await supabase
+    .from('aquarium')
+    .select('id')
+    .eq('id', visitId.value.trim())
+    .single()
+
+  if (checkError || !data) {
+    error.value = 'No aquarium was found for that ID.'
+    return
+  }
+
+  router.push(`/Aquarium/${visitId.value.trim()}`)
 }
 
 const goToAquarium = (userId) => {

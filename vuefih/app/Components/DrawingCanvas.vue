@@ -23,21 +23,34 @@ let isDrawing = false;
 
 function resizeCanvas() {
   const canvas = canvasRef.value;
+  if (!canvas) return;
+
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
+  if (!ctx) {
+    ctx = canvas.getContext("2d");
+  }
+
+  if (!ctx) return;
+
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function getMousePos(e) {
-  const rect = canvasRef.value.getBoundingClientRect();
-  return { 
-    x: e.clientX - rect.left, 
-    y: e.clientY - rect.top 
+  const canvas = canvasRef.value;
+  if (!canvas) return { x: 0, y: 0 };
+
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
   };
 }
 
 function startDrawing(e) {
+  if (!ctx) return;
   isDrawing = true;
   const pos = getMousePos(e);
   ctx.beginPath();
@@ -45,34 +58,32 @@ function startDrawing(e) {
 }
 
 function draw(e) {
-  if (!isDrawing) return;
+  if (!isDrawing || !ctx) return;
   const pos = getMousePos(e);
-  
+
   ctx.lineWidth = props.brushSize;
   ctx.lineCap = "round";
-  
-  if (props.isEraser) {
-    ctx.strokeStyle = "white";
-  } else {
-    ctx.strokeStyle = props.currentColor;
-  }
-  
+
+  ctx.strokeStyle = props.isEraser ? "white" : props.currentColor;
+
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
 }
 
 function stopDrawing() {
+  if (!ctx) return;
   isDrawing = false;
   ctx.closePath();
 }
 
 onMounted(() => {
   const canvas = canvasRef.value;
+  if (!canvas) return;
+
   ctx = canvas.getContext("2d");
-  
   resizeCanvas();
+
   window.addEventListener("resize", resizeCanvas);
-  
   canvas.addEventListener("pointerdown", startDrawing);
   canvas.addEventListener("pointermove", draw);
   canvas.addEventListener("pointerup", stopDrawing);

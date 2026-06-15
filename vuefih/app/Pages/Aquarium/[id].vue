@@ -62,12 +62,12 @@ if (!userId) {
         .from('aquarium')
         .select('*')
         .eq('id', userId)
-        .limit(1)
+        .maybeSingle()
 
       if (supErr) {
-        error.value = supErr.message || 'Failed to load aquariums.'
+        error.value = supErr.message || 'Failed to load aquarium.'
       } else {
-        aquariums.value = data ?? []
+        aquariums.value = data ? [data] : []
       }
     } catch (err: any) {
       error.value = err?.message || String(err)

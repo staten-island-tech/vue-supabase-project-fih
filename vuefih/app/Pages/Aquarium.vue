@@ -144,6 +144,7 @@ const loadFish = async () => {
   const { data, error } = await supabase
     .from('aquarium')
     .select('*')
+    .eq('id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
