@@ -59,9 +59,10 @@ if (!userId) {
     error.value = ''
     try {
       const { data, error: supErr } = await supabase
-        .from('aquariums')
+        .from('aquarium')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
+        .limit(1)
 
       if (supErr) {
         error.value = supErr.message || 'Failed to load aquariums.'

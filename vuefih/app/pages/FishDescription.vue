@@ -65,8 +65,8 @@ const loadImage = async () => {
 
   if (savedFishId) {
     const { data, error } = await supabase
-      .from('aquariums')
-      .select('*')
+      .from('aquarium')
+      .select('id,background')
       .eq('id', savedFishId)
       .single()
 
@@ -76,9 +76,9 @@ const loadImage = async () => {
       return
     }
 
-    publicUrl.value = data?.public_url || ''
-    fishName.value = data?.name || ''
-    fishDescription.value = data?.description || ''
+    publicUrl.value = data?.background || ''
+    fishName.value = ''
+    fishDescription.value = ''
     loading.value = false
     return
   }
@@ -110,33 +110,21 @@ const saveFish = async () => {
     }
 
     const savedFishId = route.query.savedFishId || route.query.id || null
+    const aquariumId = savedFishId || userId
 
-    if (savedFishId) {
-      const { error } = await supabase
-        .from('aquariums')
-        .update({
-          name: fishName.value,
-          description: fishDescription.value,
-          public_url: publicUrl.value
-        })
-        .eq('id', savedFishId)
+    const { error } = await supabase
+      .from('aquarium')
+      .upsert(
+        {
+          id: aquariumId,
+          background: publicUrl.value
+        },
+        { onConflict: 'id' }
+      )
 
-      if (error) {
-        console.error('Update failed:', error)
-        return
-      }
-    } else {
-      const { error } = await supabase.from('aquariums').insert({
-        user_id: userId,
-        name: fishName.value,
-        description: fishDescription.value,
-        public_url: publicUrl.value
-      })
-
-      if (error) {
-        console.error('Insert failed:', error)
-        return
-      }
+    if (error) {
+      console.error('Save failed:', error)
+      return
     }
 
     await router.replace('/Aquarium')

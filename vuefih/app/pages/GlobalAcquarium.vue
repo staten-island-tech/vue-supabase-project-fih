@@ -70,8 +70,8 @@ const loadGlobalAquariums = async () => {
   error.value = ''
 
   const { data, error: supErr } = await supabase
-    .from('aquariums')
-    .select('*')
+    .from('aquarium')
+    .select('id,background,created_at')
     .order('id', { ascending: false })
 
   if (supErr) {
@@ -85,8 +85,15 @@ const loadGlobalAquariums = async () => {
     users.value = []
     loading.value = false
     return
-  }\
-  
+  }
+
+  users.value = data.map(row => ({
+    user_id: row.id,
+    count: 1,
+    latestFish: row.background ? 'Saved aquarium background' : 'No aquarium background',
+    latestDescription: row.background ? 'Background saved' : 'No description available'
+  }))
+  loading.value = false
 }
 
 const visitAquarium = () => {

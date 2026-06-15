@@ -142,9 +142,8 @@ const loadFish = async () => {
   }
 
   const { data, error } = await supabase
-    .from('aquariums')
+    .from('aquarium')
     .select('*')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -157,7 +156,7 @@ const loadFish = async () => {
     id: item.id,
     name: item.name,
     description: item.description,
-    publicUrl: item.public_url,
+    publicUrl: item.background,
     style: randomStyle()
   }))
 }
@@ -195,7 +194,7 @@ const deleteFish = async () => {
   if (!selectedFish.value) return
 
   const { error } = await supabase
-    .from('aquariums')
+    .from('aquarium')
     .delete()
     .eq('id', selectedFish.value.id)
 
@@ -217,6 +216,14 @@ onMounted(loadFish)
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 1;
+}
+
+.user-profile-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
 }
 
 .aquarium-container {

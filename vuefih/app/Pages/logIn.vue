@@ -85,7 +85,7 @@ onMounted(async () => {
   }
 
   const { data } = await supabase
-    .from("aquariums")
+    .from("aquarium")
     .select("*")
     .eq("user_id", userId);
 
