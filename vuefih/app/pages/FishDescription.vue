@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useSupabaseClient, useSupabaseUser } from '#imports'
 
 const router = useRouter()
@@ -113,23 +113,9 @@ function goToPixel() {
   router.push('/PixelArtFish')
 }
 
-const waitForUser = async () => {
-  if (user.value?.id) return user.value.id
-
-  return new Promise((resolve) => {
-    const stop = user.value?.watch || null
-
-    const interval = setInterval(() => {
-      if (user.value?.id) {
-        clearInterval(interval)
-        resolve(user.value.id)
-      }
-    }, 100)
-  })
-}
-
 const loadFish = async () => {
-  const userId = await waitForUser()
+  const userId = user.value?.id
+  if (!userId) return
 
   const { data, error } = await supabase
     .from('aquarium')
@@ -157,6 +143,10 @@ const loadFish = async () => {
   }))
 }
 
+watch(user, (val) => {
+  if (val?.id) loadFish()
+}, { immediate: true })
+
 const openFish = (f) => {
   selectedFish.value = f
   showModal.value = true
@@ -175,16 +165,19 @@ const editFish = () => {
 const deleteFish = async () => {
   if (!selectedFish.value) return
 
-  await supabase
+  const { error } = await supabase
     .from('aquarium')
     .delete()
     .eq('id', selectedFish.value.id)
 
+  if (error) {
+    console.error(error)
+    return
+  }
+
   fish.value = fish.value.filter(f => f.id !== selectedFish.value.id)
   closeModal()
 }
-
-onMounted(loadFish)
 </script>
 
 <style scoped>

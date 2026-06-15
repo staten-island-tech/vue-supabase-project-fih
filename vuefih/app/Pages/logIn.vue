@@ -1,32 +1,33 @@
 <template>
-  <form @submit.prevent="login">
-    <div style="position: relative; border: 1px solid #ccc; border-radius: 20px; padding: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%;">
-      <h1 style="text-align: center; font-family: Roboto, sans-serif;">Welcome!</h1>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Please Log In</h2>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Email</h2>
-      <input  style="flex: 1; display: flex; justify-self: center;  width: 50%;" type="email" v-model="email" name="Email" required size="10" />
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Password</h2>
-      <input
-        type="password"
-        v-model="password"
-        name="Password"
-        required
-        size="10"
-        style="flex: 1; display: flex; justify-self: center;  width: 50%;"
-      />
-      <button  style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;" type="submit" :disabled="auth.loading">Log In</button>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">New Here?</h2>
-      <nuxt-link style="text-align: center;" to="/signIn">
-        <button style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;">Sign In</button>
-      </nuxt-link>
-      <p v-if="auth.error" style="color: red">{{ auth.error }}</p>
-    </div>
-  </form>
+ <form @submit.prevent="login">
+  <div class="login-box">
+    <h1>Welcome!</h1>
+    <h2>Please Log In</h2>
+
+    <h2>Email</h2>
+    <input type="email" v-model="email" name="Email" required />
+
+    <h2>Password</h2>
+    <input type="password" v-model="password" name="Password" required />
+
+    <button type="submit" :disabled="auth.loading">
+      Log In
+    </button>
+
+    <h2>New Here?</h2>
+
+    <NuxtLink to="/signIn">
+    Sign In
+    </NuxtLink>
+
+    <p v-if="auth.error">{{ auth.error }}</p>
+  </div>
+</form>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/Stores/store"; 
 import { useSupabaseClient } from "#imports";
 
@@ -85,12 +86,86 @@ onMounted(async () => {
   }
 
   const { data } = await supabase
-    .from("aquariums")
+    .from("aquarium")
     .select("*")
-    .eq("user_id", userId);
+    .eq("id", userId);
 
   aquariums.value = data ?? [];
 });
 </script>
+<style scoped>
+form {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+}
 
-<style scoped></style>
+.login-box {
+  width: 90%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: #374151;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+button {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button[type="submit"] {
+  background: #06b6d4;
+  color: white;
+}
+
+button[type="button"] {
+  background: rgba(15, 23, 42, 0.08);
+  color: #111827;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+p {
+  color: #ef4444;
+  margin: 0;
+}
+</style>

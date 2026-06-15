@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const supabase = useSupabaseClient() // Nuxt composable injected by @nuxtjs/supabase
+        const supabase = useSupabaseClient() 
         const { data, error } = await supabase.auth.signUp(
           { email, password },
           redirectTo ? { emailRedirectTo: redirectTo } : {}
