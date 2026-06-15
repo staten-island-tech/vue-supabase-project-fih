@@ -1,7 +1,18 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+import viteTsconfigPaths from 'vite-tsconfig-paths'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  css: [
+    new URL('./assets/css/tailwind.css', import.meta.url).pathname
+  ],
+  vite: {
+    plugins: [
+      viteTsconfigPaths(),
+      tailwindcss(),
+    ]
+  },
   modules: [
     '@nuxtjs/supabase',
     '@pinia/nuxt'

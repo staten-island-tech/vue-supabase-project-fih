@@ -1,11 +1,10 @@
-<template>
-    <div>
-        <GoBackButton />
-        <img src="https://media.istockphoto.com/id/500739571/photo/aquascaping-of-the-planted-aquarium.jpg?s=612x612&w=0&k=20&c=YCij36GhbrEIid6LmlNT7ak3WBgYTMpGF6bI-6cpjR4=" alt="Aquarium" />
-        <button v-show="showVisitFunctionbtn" @click="toggleVisitFunction">Visit Other Aquariums!</button>
+<template style="width: 100%; height: 100%;">
+    <div class="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat relative" :style="{ backgroundImage: `url('https://cdn.vectorstock.com/i/500p/26/43/coral-reef-aquarium-background-vector-50352643.jpg')` }">
+        <GoBackButton style="position: absolute; top: 10px; left: 10px;"/>
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="position: absolute; bottom: 10px; left: 10px;" v-show="showVisitFunctionbtn" @click="toggleVisitFunction">Visit Other Aquariums!</button>
         <VisitFunction v-show="showVisitFunction"/>
-        <button v-show="showUserProfilebtn" @click="toggleUserProfile">User Profile</button>
-        <UserProfile v-show="showUserProfile"/>
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="position: absolute; top: 10px; right: 10px;" v-show="showUserProfilebtn" @click="toggleUserProfile">User Profile</button>
+        <UserProfile class="position-absolute top-10 right-10" v-show="showUserProfile"/>
     </div>
 </template>
 

@@ -1,24 +1,24 @@
 <template>
   <form @submit.prevent="login">
-    <div>
-      <h1>Welcome!</h1>
-      <h2>Please Log In</h2>
-      <h2>Email</h2>
-      <input type="email" v-model="email" name="Email" required size="10" />
-      <h2>Password</h2>
+    <div style="position: relative; border: 1px solid #ccc; border-radius: 20px; padding: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%;">
+      <h1 style="text-align: center; font-family: Roboto, sans-serif;">Welcome!</h1>
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Please Log In</h2>
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Email</h2>
+      <input  style="flex: 1; display: flex; justify-self: center;  width: 50%;" type="email" v-model="email" name="Email" required size="10" />
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Password</h2>
       <input
         type="password"
         v-model="password"
         name="Password"
         required
         size="10"
+        style="flex: 1; display: flex; justify-self: center;  width: 50%;"
       />
-      <button type="submit" :disabled="auth.loading">Log In</button>
-      <h2>New Here?</h2>
-      <nuxt-link to="/signIn">
-        <h2>Sign In</h2>
+      <button  style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;" type="submit" :disabled="auth.loading">Log In</button>
+      <h2 style="text-align: center; font-family: Roboto, sans-serif;">New Here?</h2>
+      <nuxt-link style="text-align: center;" to="/signIn">
+        <button style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;">Sign In</button>
       </nuxt-link>
-      <p v-if="message">{{ message }}</p>
       <p v-if="auth.error" style="color: red">{{ auth.error }}</p>
     </div>
   </form>
