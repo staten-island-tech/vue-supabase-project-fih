@@ -1,149 +1,243 @@
 <template>
-  <div class="page">
-    <header>
-      <NuxtLink to="/Aquarium">Back</NuxtLink>
-    </header>
+  <div
+    class="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat relative"
+    :style="{
+      backgroundImage: `url('https://cdn.vectorstock.com/i/500p/26/43/coral-reef-aquarium-background-vector-50352643.jpg')`
+    }"
+  >
+    <GoBackButton class="z-10 absolute top-2 left-2" />
 
-    <section v-if="loading">Loading...</section>
+    <button
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute bottom-2 left-2 z-10"
+      v-show="showVisitFunctionbtn"
+      @click="toggleVisitFunction"
+    >
+      Visit Other Aquariums!
+    </button>
 
-    <section v-else>
-      <img v-if="publicUrl" :src="publicUrl" class="fish-image" />
-      <p v-else>No image found.</p>
+    <VisitFunction v-show="showVisitFunction" />
 
-      <input v-model="fishName" placeholder="Name" />
-      <input v-model="fishDescription" placeholder="Description" />
+    <button
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute top-2 right-2 z-10"
+      v-show="showUserProfilebtn"
+      @click="toggleUserProfile"
+    >
+      User Profile
+    </button>
 
-      <button @click="saveFish">Save</button>
-    </section>
+    <button
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2 z-10"
+      @click="goToPixel"
+    >
+      Create Fish
+    </button>
+
+    <UserProfile
+      class="user-profile-panel"
+      v-show="showUserProfile"
+      @close="toggleUserProfile"
+    />
+
+    <div class="aquarium-fish-layer">
+      <div v-if="fish.length > 0" class="aquarium-container">
+        <div
+          v-for="f in fish"
+          :key="f.id"
+          class="fish-wrapper"
+          :style="f.style"
+        >
+          <img
+            :src="f.publicUrl"
+            class="aquarium-fish"
+            @click="openFish(f)"
+          />
+        </div>
+      </div>
+
+      <div v-else class="empty-fish">
+        No fish yet — create one!
+      </div>
+    </div>
+
+    <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
+      <div class="fish-card">
+        <button class="close" @click="closeModal">✕</button>
+
+        <img :src="selectedFish.publicUrl" class="card-img" />
+
+        <h3 class="card-name">
+          {{ selectedFish.name || 'Unnamed fish' }}
+        </h3>
+
+        <p class="card-desc">
+          {{ selectedFish.description || 'No description' }}
+        </p>
+
+        <div class="card-actions">
+          <button class="edit-btn" @click="editFish">Edit</button>
+          <button class="delete-btn" @click="deleteFish">Delete</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter, useSupabaseClient, useSupabaseUser } from '#imports'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useSupabaseClient, useSupabaseUser } from '#imports'
 
+const router = useRouter()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const route = useRoute()
-const router = useRouter()
 
-const publicUrl = ref('')
-const fishName = ref('')
-const fishDescription = ref('')
-const loading = ref(true)
+const fish = ref([])
+const selectedFish = ref(null)
+const showModal = ref(false)
 
-const getUserId = async () => {
-  if (user.value?.id) {
-    return user.value.id
-  }
+const showVisitFunctionbtn = ref(true)
+const showVisitFunction = ref(false)
+const showUserProfilebtn = ref(true)
+const showUserProfile = ref(false)
 
-  const { data: authData } = await supabase.auth.getUser()
-  if (authData?.user?.id) {
-    return authData.user.id
-  }
-
-  const { data: sessionData } = await supabase.auth.getSession()
-  return sessionData?.session?.user?.id || null
+function toggleVisitFunction() {
+  showVisitFunction.value = !showVisitFunction.value
+  showUserProfile.value = false
 }
 
-const getRouteFishId = () => {
-  const queryId = route.query.savedFishId || route.query.id
-  if (!queryId) return null
-  return Array.isArray(queryId) ? queryId[0] : queryId
+function toggleUserProfile() {
+  showUserProfile.value = !showUserProfile.value
+  showVisitFunction.value = false
 }
 
-const getRouteFilePath = () => {
-  const queryPath = route.query.filePath
-  if (!queryPath) return null
-  return Array.isArray(queryPath) ? queryPath[0] : queryPath
+function goToPixel() {
+  router.push('/PixelArtFish')
 }
 
-const loadImage = async () => {
-  loading.value = true
-  const savedFishId = getRouteFishId()
-  const filePath = getRouteFilePath()
+const loadFish = async () => {
+  const userId = user.value?.id
+  if (!userId) return
 
-  if (savedFishId) {
-    const { data, error } = await supabase
-      .from('aquarium')
-      .select('*')
-      .eq('id', savedFishId)
-      .single()
+  const { data, error } = await supabase
+    .from('aquarium')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('Failed to load fish entry:', error)
-      loading.value = false
-      return
-    }
-
-    publicUrl.value = data?.public_url || ''
-    fishName.value = data?.name || ''
-    fishDescription.value = data?.description || ''
-    loading.value = false
+  if (error) {
+    console.error(error)
+    fish.value = []
     return
   }
 
-  if (!filePath) {
-    loading.value = false
+  fish.value = (data || []).map(item => ({
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    publicUrl: item.public_url,
+    style: {
+      position: 'absolute',
+      left: `${10 + Math.random() * 80}%`,
+      top: `${10 + Math.random() * 70}%`,
+      transform: 'translate(-50%, -50%)'
+    }
+  }))
+}
+
+watch(user, (val) => {
+  if (val?.id) loadFish()
+}, { immediate: true })
+
+const openFish = (f) => {
+  selectedFish.value = f
+  showModal.value = true
+}
+
+const closeModal = () => {
+  selectedFish.value = null
+  showModal.value = false
+}
+
+const editFish = () => {
+  if (!selectedFish.value) return
+  router.push(`/FishDescription?id=${selectedFish.value.id}`)
+}
+
+const deleteFish = async () => {
+  if (!selectedFish.value) return
+
+  const { error } = await supabase
+    .from('aquarium')
+    .delete()
+    .eq('id', selectedFish.value.id)
+
+  if (error) {
+    console.error(error)
     return
   }
 
-  const { data } = supabase.storage
-    .from('Fish')
-    .getPublicUrl(String(filePath))
-
-  publicUrl.value = data?.publicUrl || data?.publicURL || ''
-  loading.value = false
+  fish.value = fish.value.filter(f => f.id !== selectedFish.value.id)
+  closeModal()
 }
-
-const saveFish = async () => {
-  try {
-    const userId = await getUserId()
-    if (!userId) {
-      console.warn('No user found')
-      return
-    }
-
-    if (!publicUrl.value) {
-      console.log('missing image')
-      return
-    }
-
-    const savedFishId = route.query.savedFishId || route.query.id || null
-
-    if (savedFishId) {
-      const { error } = await supabase
-        .from('aquarium')
-        .update({
-          name: fishName.value,
-          description: fishDescription.value,
-          public_url: publicUrl.value
-        })
-        .eq('id', savedFishId)
-
-      if (error) {
-        console.error('Update failed:', error)
-        return
-      }
-    } else {
-      const { error } = await supabase.from('aquarium').insert({
-        user_id: userId,
-        name: fishName.value,
-        description: fishDescription.value,
-        public_url: publicUrl.value
-      })
-
-      if (error) {
-        console.error('Insert failed:', error)
-        return
-      }
-    }
-
-    await router.replace('/Aquarium')
-  } catch (err) {
-    console.error('SAVE FAILED:', err)
-  }
-}
-
-onMounted(loadImage)
 </script>
+
+<style scoped>
+.aquarium-fish-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.aquarium-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.aquarium-fish {
+  width: 85px;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+}
+
+.empty-fish {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: 600;
+  background: rgba(0,0,0,0.3);
+  padding: 12px 18px;
+  border-radius: 12px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  z-index: 50;
+}
+
+.fish-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  width: 340px;
+  text-align: center;
+}
+
+.card-img {
+  width: 170px;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+</style>

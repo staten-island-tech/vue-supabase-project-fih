@@ -1,51 +1,65 @@
 <template>
-    <div class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        <h1>Give Me Their ID!(Can be seen in the URL)</h1>
-        <input class = "bg-white text-gray-700 font-bold py-2 px-4 rounded" type="text" v-model="id"/>
-        <button class="bg-white text-gray-700 font-bold py-2 px-4 rounded" @click="visitAquarium">Visit Aquarium</button>
-        <p v-if="errormessage" class="text-red-200 mt-2">{{ errormessage }}</p>
-    </div>
+  <div class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    <h1>Give Me Their ID (Found in URL)</h1>
+
+    <input
+      class="bg-white text-gray-700 font-bold py-2 px-4 rounded"
+      type="text"
+      v-model="id"
+    />
+
+    <button
+      class="bg-white text-gray-700 font-bold py-2 px-4 rounded"
+      @click="visitAquarium"
+    >
+      Visit Aquarium
+    </button>
+
+    <p v-if="errormessage" class="text-red-200 mt-2">
+      {{ errormessage }}
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useSupabaseClient } from '#imports';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useSupabaseClient } from '#imports'
 
-const id = ref('');
-let errormessage = ref('');
-const router = useRouter();
-const supabase = useSupabaseClient();
+const id = ref('')
+const errormessage = ref('')
+const router = useRouter()
+const supabase = useSupabaseClient()
 
 async function visitAquarium() {
-    errormessage.value = '';
+  errormessage.value = ''
 
-    if (!id.value.trim()) {
-        errormessage.value = 'Please enter a valid ID.';
-        return;
-    }
+  const trimmedId = id.value.trim()
 
-    const { data, error } = await supabase
-        .from('aquarium')
-        .select('id')
-        .eq('id', id.value.trim())
-        .maybeSingle();
+  if (!trimmedId) {
+    errormessage.value = 'Please enter a valid ID.'
+    return
+  }
 
-    if (error) {
-        errormessage.value = 'Unable to check that ID right now.';
-        return;
-    }
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', trimmedId)
+    .maybeSingle()
 
-    if (!data) {
-        errormessage.value = 'No aquarium was found for that ID.';
-        return;
-    }
+  if (error) {
+    errormessage.value = 'Unable to check that ID right now.'
+    return
+  }
 
-    await router.push(`/Aquarium/${id.value.trim()}`);
+  if (!data) {
+    errormessage.value = 'No user was found for that ID.'
+    return
+  }
+
+  await router.push(`/Aquarium/${trimmedId}`)
 }
-
 </script>
 
 <style scoped>
-
 </style>

@@ -125,5 +125,115 @@ const save = async () => {
 </script>
 
 <style scoped>
+.page {
+  min-height: 100vh;
+  padding: 20px;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
 
+.toolbar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.toolbar a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#Save {
+  background: #06b6d4;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.controls-card {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  gap: 24px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  align-items: center;
+}
+
+#colorPicker {
+  width: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tool-settings {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: white;
+  font-weight: 500;
+}
+
+.tool-settings strong {
+  color: #06b6d4;
+}
+
+input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+.tool-settings button {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tool-settings button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.canvas-card {
+  width: 100%;
+  max-width: 900px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 </style>
