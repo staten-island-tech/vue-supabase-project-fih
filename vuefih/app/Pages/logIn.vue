@@ -1,96 +1,176 @@
 <template>
-  <form @submit.prevent="login">
-    <div style="position: relative; border: 1px solid #ccc; border-radius: 20px; padding: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%;">
-      <h1 style="text-align: center; font-family: Roboto, sans-serif;">Welcome!</h1>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Please Log In</h2>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Email</h2>
-      <input  style="flex: 1; display: flex; justify-self: center;  width: 50%;" type="email" v-model="email" name="Email" required size="10" />
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">Password</h2>
-      <input
-        type="password"
-        v-model="password"
-        name="Password"
-        required
-        size="10"
-        style="flex: 1; display: flex; justify-self: center;  width: 50%;"
-      />
-      <button  style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;" type="submit" :disabled="auth.loading">Log In</button>
-      <h2 style="text-align: center; font-family: Roboto, sans-serif;">New Here?</h2>
-      <nuxt-link style="text-align: center;" to="/signIn">
-        <button style="flex: 1; display: flex; justify-self: center; font-family: Roboto, sans-serif;">Sign In</button>
-      </nuxt-link>
-      <p v-if="auth.error" style="color: red">{{ auth.error }}</p>
-    </div>
-  </form>
+  <main class="auth-page">
+    <form class="auth-panel" @submit.prevent="login">
+      <div>
+        <p class="eyebrow">Pixel Aquarium</p>
+        <h1>Welcome back</h1>
+        <p class="helper">Log in to create fish, manage your aquarium, and browse the global gallery.</p>
+      </div>
+
+      <label>
+        <span>Email</span>
+        <input v-model="email" type="email" name="email" autocomplete="email" required />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input
+          v-model="password"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+        />
+      </label>
+
+      <p v-if="message" class="message" :class="{ error: hasError }">{{ message }}</p>
+      <p v-if="auth.error" class="message error">{{ auth.error }}</p>
+
+      <button class="primary-btn" type="submit" :disabled="auth.loading">
+        {{ auth.loading ? 'Logging in...' : 'Log In' }}
+      </button>
+
+      <p class="switch-copy">
+        New here?
+        <NuxtLink to="/signIn">Create an account</NuxtLink>
+      </p>
+    </form>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "~/Stores/store"; 
-import { useSupabaseClient } from "#imports";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '~/Stores/store'
 
-type email = string;
-type password = string;
-
-const email = ref<email>("");
-const password = ref<password>("");
-const message = ref("");
-const router = useRouter();
-const auth = useAuthStore();
-const route = useRoute();
-const supabase = useSupabaseClient();
-const aquariums = ref([]);
+const email = ref('')
+const password = ref('')
+const message = ref('')
+const hasError = ref(false)
+const router = useRouter()
+const auth = useAuthStore()
 
 async function login() {
-  message.value = "";
+  message.value = ''
+  hasError.value = false
 
-  const e = (email.value || "").trim();
-  const p = (password.value || "").trim();
+  const e = email.value.trim()
+  const p = password.value
 
   if (!e || !p) {
-    message.value = "Email and password are required.";
-    return;
+    message.value = 'Email and password are required.'
+    hasError.value = true
+    return
   }
 
-  console.log("login attempt", { email: e, passwordLength: p.length });
-
-  const res = await auth.signIn(e, p);
-  console.log("signIn result", res);
+  const res = await auth.signIn(e, p)
 
   if (!res.success) {
-    message.value =
-      (res.error as any)?.message || auth.error || "Login failed.";
-    return;
+    message.value = (res.error as any)?.message || auth.error || 'Login failed.'
+    hasError.value = true
+    return
   }
 
   if (res.data?.user && !res.data?.session) {
-    message.value = "Please confirm your email before signing in.";
-    return;
+    message.value = 'Please confirm your email before signing in.'
+    hasError.value = true
+    return
   }
-  const id = res.data?.user?.id;
-  console.log("logged in user id", id);
-  const user = res.data?.user ?? null;
-  console.log("logged in user", user);
-  auth.$patch({ user: user as any });
-  await router.push(`/Aquarium/${id}`);
+
+  auth.$patch({ user: res.data?.user ?? null })
+  await router.push('/Aquarium')
 }
-
-onMounted(async () => {
-  const rawId = route.params.id;
-  const userId = Array.isArray(rawId) ? rawId[0] : rawId;
-
-  if (!userId) {
-    return;
-  }
-
-  const { data } = await supabase
-    .from("aquarium")
-    .select("*")
-    .eq("id", userId);
-
-  aquariums.value = data ?? [];
-});
 </script>
 
-<style scoped></style>
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(20, 184, 166, 0.22)),
+    #e0f7fa;
+  color: #0f172a;
+}
+
+.auth-panel {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 16px;
+  border: 1px solid rgba(14, 116, 144, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 24px;
+  box-shadow: 0 22px 60px rgba(8, 47, 73, 0.18);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #0e7490;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.helper,
+.switch-copy,
+.message {
+  margin: 0;
+}
+
+.helper,
+.switch-copy {
+  color: #475569;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #67e8f9;
+  border-radius: 8px;
+  color: #0f172a;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.primary-btn {
+  border: 0;
+  border-radius: 8px;
+  background: #0891b2;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 11px 14px;
+}
+
+.primary-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.switch-copy a {
+  color: #0369a1;
+  font-weight: 800;
+}
+
+.message {
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.message.error {
+  color: #b91c1c;
+}
+</style>

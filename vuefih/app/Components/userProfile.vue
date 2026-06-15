@@ -1,72 +1,128 @@
 <template>
-    <div class="user-profile-card">
-        <button class="close-profile" @click="$emit('close')">✕</button>
-        <img src="https://th.bing.com/th/id/OIP.i3qQLulfg9NApqe_4NaYzgHaHa?w=214&h=214&c=7&r=0&o=7&pid=1.7&rm=3" alt="User Profile Picture" />
-        <h1>User Email:</h1>
-        <h3>{{ userEmail }}</h3>
-        <h2>User Id:</h2>
-        <h3>{{ userId }}</h3>
-        <button class="bg-white text-gray-700 font-bold py-2 px-4 rounded" @click="SignOut">Sign Out</button>
+  <div class="user-profile-card">
+    <button class="close-profile" type="button" @click="$emit('close')">Close</button>
+    <img
+      src="https://th.bing.com/th/id/OIP.i3qQLulfg9NApqe_4NaYzgHaHa?w=214&h=214&c=7&r=0&o=7&pid=1.7&rm=3"
+      alt="User Profile Picture"
+    />
+    <div>
+      <p class="label">Email</p>
+      <p class="value">{{ userEmail || 'Not signed in' }}</p>
     </div>
+    <div>
+      <p class="label">User ID</p>
+      <p class="value id-value">{{ userId || 'No user loaded' }}</p>
+    </div>
+    <NuxtLink v-if="userId" class="profile-link" :to="publicAquariumPath">
+      Public Aquarium
+    </NuxtLink>
+    <button
+      v-if="canEdit"
+      class="sign-out-btn"
+      type="button"
+      :disabled="auth.loading"
+      @click="signOut"
+    >
+      {{ auth.loading ? 'Signing out...' : 'Sign Out' }}
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useAuthStore } from '~/Stores/store';
+import { computed, onMounted } from 'vue'
+import { useAuthStore } from '~/Stores/store'
 
 const props = defineProps({
   canEdit: {
     type: Boolean,
     default: true
   }
-});
+})
 
-const emit = defineEmits(['close']);
-const auth = useAuthStore();
-const userEmail = computed(() => auth.user?.email ?? '');
-const userId = computed(() => auth.user?.id ?? '');
+const emit = defineEmits(['close'])
+const auth = useAuthStore()
+
+const canEdit = computed(() => props.canEdit)
+const userEmail = computed(() => auth.user?.email ?? '')
+const userId = computed(() => auth.user?.id ?? '')
+const publicAquariumPath = computed(() => `/Aquarium/${encodeURIComponent(userId.value)}`)
 
 onMounted(async () => {
   if (!auth.user) {
-    await auth.fetchUser();
+    await auth.fetchUser()
   }
-});
+})
 
-async function SignOut() {
-  await auth.signOut();
+async function signOut() {
+  const result = await auth.signOut()
+  if (result.success) {
+    emit('close')
+  }
 }
 </script>
 
 <style scoped>
 .user-profile-card {
-  position: relative;
-  background: #1d4ed8;
+  display: grid;
+  gap: 12px;
+  max-width: 320px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
   color: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  min-width: 240px;
 }
+
 .user-profile-card img {
-  display: block;
-  width: 80px;
-  height: 80px;
-  border-radius: 9999px;
-  margin: 0 auto 1rem;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
 }
+
 .close-profile {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(255,255,255,0.2);
-  border: none;
+  justify-self: end;
+  border: 0;
+  background: transparent;
   color: white;
-  font-size: 1rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 9999px;
   cursor: pointer;
+  font-weight: 700;
 }
-.close-profile:hover {
-  background: rgba(255,255,255,0.35);
+
+.label,
+.value {
+  margin: 0;
+}
+
+.label {
+  color: #a5f3fc;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.value {
+  overflow-wrap: anywhere;
+}
+
+.id-value {
+  font-size: 0.86rem;
+}
+
+.profile-link,
+.sign-out-btn {
+  border: 0;
+  border-radius: 8px;
+  background: white;
+  color: #0369a1;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 9px 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sign-out-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 </style>

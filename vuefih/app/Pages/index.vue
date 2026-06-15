@@ -1,17 +1,21 @@
-<template>
-  <div>
-    <NuxtPage name="logIn" />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { onMounted } from 'vue';
+const supabase = useSupabaseClient()
+const { data } = await supabase.auth.getSession()
 
-onMounted(() => {
-  navigateTo('/login')
-});
+await navigateTo(data.session ? '/Aquarium' : '/login', { replace: true })
 </script>
 
-<style scoped>
+<template>
+  <main class="loading-page">Loading...</main>
+</template>
 
+<style scoped>
+.loading-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #e0f7fa;
+  color: #0f172a;
+  font-weight: 800;
+}
 </style>

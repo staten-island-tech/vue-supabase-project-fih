@@ -1,10 +1,12 @@
 <template>
-    <div class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        <h1>Give Me Their ID!(Can be seen in the URL)</h1>
-        <input class = "bg-white text-gray-700 font-bold py-2 px-4 rounded" type="text" v-model="id"/>
-        <button class="bg-white text-gray-700 font-bold py-2 px-4 rounded" @click="visitAquarium">Visit Aquarium</button>
-        <p v-if="errormessage" class="text-red-200 mt-2">{{ errormessage }}</p>
-    </div>
+  <section class="visit-card">
+    <label>
+      <span>User ID</span>
+      <input v-model="id" type="text" placeholder="Paste an aquarium user ID" @keyup.enter="visitAquarium" />
+    </label>
+    <button type="button" @click="visitAquarium">Visit Aquarium</button>
+    <p v-if="errormessage" class="error-message">{{ errormessage }}</p>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -27,8 +29,9 @@ async function visitAquarium() {
 
     const { data, error } = await supabase
         .from('aquarium')
-        .select('id')
-        .eq('id', id.value.trim())
+        .select('user_id')
+        .eq('user_id', id.value.trim())
+        .limit(1)
         .maybeSingle();
 
     if (error) {
@@ -37,7 +40,7 @@ async function visitAquarium() {
     }
 
     if (!data) {
-        errormessage.value = 'No aquarium was found for that ID.';
+        errormessage.value = 'No aquarium was found for that user ID.';
         return;
     }
 
@@ -47,5 +50,45 @@ async function visitAquarium() {
 </script>
 
 <style scoped>
+.visit-card {
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  padding: 14px;
+  box-shadow: 0 16px 34px rgba(8, 47, 73, 0.18);
+}
 
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #67e8f9;
+  border-radius: 8px;
+  color: #0f172a;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  background: #0891b2;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.error-message {
+  margin: 0;
+  color: #b91c1c;
+  font-weight: 700;
+}
 </style>
