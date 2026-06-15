@@ -1,4 +1,3 @@
-// ...existing code...
 <template>
   <form @submit.prevent="register">
     <div style="position: relative; border: 1px solid #ccc; border-radius: 20px; padding: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; ">
@@ -48,13 +47,11 @@ async function register() {
     return
   }
 
-  // If your Supabase project requires email confirmation, user will need to confirm.
   if (res.data?.user && !res.data?.session) {
     message.value = 'Check your email to confirm your account.'
     return
   }
 
-  // If account created and signed in immediately, route user
   await router.push('/Aquarium')
 }
 </script>
