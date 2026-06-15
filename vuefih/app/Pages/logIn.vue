@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/Stores/store"; 
 import { useSupabaseClient } from "#imports";
 
@@ -87,7 +87,7 @@ onMounted(async () => {
   const { data } = await supabase
     .from("aquarium")
     .select("*")
-    .eq("user_id", userId);
+    .eq("id", userId);
 
   aquariums.value = data ?? [];
 });

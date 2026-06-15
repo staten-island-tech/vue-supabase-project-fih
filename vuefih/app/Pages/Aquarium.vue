@@ -142,10 +142,11 @@ const loadFish = async () => {
   }
 
   const { data, error } = await supabase
-    .from('aquarium')
-    .select('*')
-    .eq('id', userId)
-    .order('created_at', { ascending: false })
+  .from('aquarium')
+  .select('*')
+  .eq('user_id', userId)
+  .order('created_at', { ascending: false })
+  console.log("RAW DATA FROM SUPABASE:", data)
 
   if (error) {
     console.log(error)
