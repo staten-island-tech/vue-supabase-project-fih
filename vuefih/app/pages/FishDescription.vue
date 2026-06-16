@@ -25,7 +25,7 @@
             v-model="fishDescription"
             placeholder="Write a short description"
             rows="4"
-          />
+          ></textarea>
         </label>
 
         <p v-if="message" class="message" :class="{ error: hasError }">{{ message }}</p>

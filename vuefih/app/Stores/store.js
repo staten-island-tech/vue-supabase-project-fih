@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const supabase = useSupabaseClient() // Nuxt composable injected by @nuxtjs/supabase
+        const supabase = useSupabaseClient() 
         const credentials = redirectTo
           ? { email, password, options: { emailRedirectTo: redirectTo } }
           : { email, password }
@@ -92,12 +92,9 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // new: set user directly
-    setUser(user) {
+      setUser(user) {
       this.user = user ?? null
     },
-
-    // new: ensure current auth user is loaded into the store
     async fetchUser() {
       this.loading = true
       this.error = null
@@ -118,7 +115,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // new: fetch profile row from 'profiles' table (expects profiles.id = auth.user.id)
     async fetchProfile() {
       this.loading = true
       this.error = null
